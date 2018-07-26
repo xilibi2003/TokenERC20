@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.20;
 
 
 import "./owned.sol";
@@ -19,7 +19,7 @@ contract MyAdvancedToken is owned, TokenERC20 {
     event FrozenFunds(address target, bool frozen);
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function MyAdvancedToken(
+    constructor (
         uint256 initialSupply,
         string tokenName,
         string tokenSymbol
@@ -34,7 +34,7 @@ contract MyAdvancedToken is owned, TokenERC20 {
         require(!frozenAccount[_to]);                       // Check if recipient is frozen
         balanceOf[_from] -= _value;                         // Subtract from the sender
         balanceOf[_to] += _value;                           // Add the same to the recipient
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
     }
 
     /// @notice Create `mintedAmount` tokens and send it to `target`
@@ -43,8 +43,8 @@ contract MyAdvancedToken is owned, TokenERC20 {
     function mintToken(address target, uint256 mintedAmount) onlyOwner public {
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
-        Transfer(0, this, mintedAmount);
-        Transfer(this, target, mintedAmount);
+        emit Transfer(0, this, mintedAmount);
+        emit Transfer(this, target, mintedAmount);
     }
 
     /// @notice `freeze? Prevent | Allow` `target` from sending & receiving tokens
@@ -52,7 +52,7 @@ contract MyAdvancedToken is owned, TokenERC20 {
     /// @param freeze either to freeze it or not
     function freezeAccount(address target, bool freeze) onlyOwner public {
         frozenAccount[target] = freeze;
-        FrozenFunds(target, freeze);
+        emit FrozenFunds(target, freeze);
     }
 
     /// @notice Allow users to buy tokens for `newBuyPrice` eth and sell tokens for `newSellPrice` eth
