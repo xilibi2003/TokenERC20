@@ -1,6 +1,6 @@
-pragma solidity ^0.4.20;
+pragma solidity >=0.4.22 <0.7.0;
 
-interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes _extraData) external; }
+interface tokenRecipient { function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _extraData) external; }
 
 contract TokenERC20 {
     string public name;
@@ -22,7 +22,7 @@ contract TokenERC20 {
     /**
      * 初始化构造
      */
-    constructor(uint256 initialSupply, string tokenName, string tokenSymbol) public {
+    constructor(uint256 initialSupply, string memory tokenName, string memory tokenSymbol) public {
         totalSupply = initialSupply * 10 ** uint256(decimals);  // 供应的份额，份额跟最小的代币单位有关，份额 = 币数 * 10 ** decimals。
         balanceOf[msg.sender] = totalSupply;                // 创建者拥有所有的代币
         name = tokenName;                                   // 代币名称
@@ -34,7 +34,7 @@ contract TokenERC20 {
      */
     function _transfer(address _from, address _to, uint _value) internal {
         // 确保目标地址不为0x0，因为0x0地址代表销毁
-        require(_to != 0x0);
+        require(_to != address(0x0));
         // 检查发送者余额
         require(balanceOf[_from] >= _value);
         // 确保转移为正数个
@@ -97,12 +97,12 @@ contract TokenERC20 {
      * @param _value 最大可花费代币数
      * @param _extraData 发送给合约的附加数据
      */
-    function approveAndCall(address _spender, uint256 _value, bytes _extraData)
+    function approveAndCall(address _spender, uint256 _value, bytes memory _extraData)
         public
         returns (bool success) {
         tokenRecipient spender = tokenRecipient(_spender);
         if (approve(_spender, _value)) {
-            spender.receiveApproval(msg.sender, _value, this, _extraData);
+            spender.receiveApproval(msg.sender, _value, address(this), _extraData);
             return true;
         }
     }

@@ -1,4 +1,4 @@
-pragma solidity ^0.4.20;
+pragma solidity >=0.4.22 <0.7.0;
 
 
 import "./owned.sol";
@@ -21,13 +21,13 @@ contract MyAdvancedToken is owned, TokenERC20 {
     /* Initializes contract with initial supply tokens to the creator of the contract */
     constructor (
         uint256 initialSupply,
-        string tokenName,
-        string tokenSymbol
+        string memory tokenName,
+        string memory tokenSymbol
     ) TokenERC20(initialSupply, tokenName, tokenSymbol) payable public {}
 
     /* Internal transfer, only can be called by this contract */
     function _transfer(address _from, address _to, uint _value) internal {
-        require (_to != 0x0);                               // Prevent transfer to 0x0 address. Use burn() instead
+        require (_to != address(0x0));                               // Prevent transfer to 0x0 address. Use burn() instead
         require (balanceOf[_from] >= _value);               // Check if the sender has enough
         require (balanceOf[_to] + _value > balanceOf[_to]); // Check for overflows
         require(!frozenAccount[_from]);                     // Check if sender is frozen
@@ -43,8 +43,8 @@ contract MyAdvancedToken is owned, TokenERC20 {
     function mintToken(address target, uint256 mintedAmount) onlyOwner public {
         balanceOf[target] += mintedAmount;
         totalSupply += mintedAmount;
-        emit Transfer(0, this, mintedAmount);
-        emit Transfer(this, target, mintedAmount);
+        emit Transfer(address(0), address(this), mintedAmount);
+        emit Transfer(address(this), target, mintedAmount);
     }
 
     /// @notice `freeze? Prevent | Allow` `target` from sending & receiving tokens
@@ -66,14 +66,14 @@ contract MyAdvancedToken is owned, TokenERC20 {
     /// @notice Buy tokens from contract by sending ether
     function buy() payable public {
         uint amount = msg.value / buyPrice;               // calculates the amount
-        _transfer(this, msg.sender, amount);              // makes the transfers
+        _transfer(address(this), msg.sender, amount);              // makes the transfers
     }
 
     /// @notice Sell `amount` tokens to contract
     /// @param amount amount of tokens to be sold
     function sell(uint256 amount) public {
-        require(this.balance >= amount * sellPrice);      // checks if the contract has enough ether to buy
-        _transfer(msg.sender, this, amount);              // makes the transfers
+        require(address(this).balance >= amount * sellPrice);      // checks if the contract has enough ether to buy
+        _transfer(msg.sender, address(this), amount);              // makes the transfers
         msg.sender.transfer(amount * sellPrice);          // sends ether to the seller. It's important to do this last to avoid recursion attacks
     }
 }
